@@ -91,7 +91,7 @@ const generateField = (value, key) => {
 
 export const withForm = ({ input, formName }) => {
   return compose(
-    setDisplayName("withFormQewl"),
+    setDisplayName(`withFormQewl(${formName})`),
     withStateHandlers(
       props => {
         const processedSchema = processInput({ apiSchema, input });
