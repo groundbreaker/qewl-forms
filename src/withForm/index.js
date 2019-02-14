@@ -4,7 +4,7 @@ import { mb } from "../utils/vendor/mb.js";
 import { humanTitles } from "../utils/string";
 import * as deepmerge from "deepmerge";
 
-const awsScalars = {
+const scalars = {
   awsemail: "string",
   awsdate: "string",
   awsdatetime: "string",
@@ -39,7 +39,7 @@ const fieldTypes = ({ apiSchema, inputField, field }) => {
         fieldTypes({ apiSchema, field: mb(["ofType"])(field), inputField })
     },
     SCALAR: {
-      type: awsScalars[field.name && field.name.toLowerCase()]
+      type: scalars[field.name && field.name.toLowerCase()]
     }
   };
 
