@@ -95,7 +95,7 @@ export const withForm = ({ input, formName }) => {
       return {
         [`${formName}Schema`]: processedSchema,
         [`${formName}FormSchema`]: processedFormSchema,
-        [`${formName}FormData`]: props[`${formName}FormSchema`]
+        [`${formName}FormData`]: processedFormSchema
       };
     },
     {
