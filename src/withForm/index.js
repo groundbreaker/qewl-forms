@@ -100,6 +100,7 @@ export const withForm = ({ input, formName }) => {
     },
     {
       [`${formName}FormUpdate`]: state => value => ({
+        ...state,
         [`${formName}FormData`]: deepmerge(state[`${formName}FormData`], value)
       })
     }
