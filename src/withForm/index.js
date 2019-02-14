@@ -84,30 +84,26 @@ const generateField = (value, key) => {
   return _.mapObject(value.properties, (v, k) => generateField(v, k));
 };
 
-export const withForm = ({ input, formName }) =>
-  compose(
-    withProps(({ apiSchema }) => ({
-      [`${formName}Schema`]: processInput({ apiSchema, input })
-    })),
-    withProps(props => ({
-      [`${formName}FormSchema`]: _.mapObject(
-        props[`${formName}Schema`].properties,
+export const withForm = ({ input, formName }) => {
+  return withStateHandlers(
+    props => {
+      const processedSchema = processInput({ apiSchema, input });
+      const processedFormSchema = _.mapObject(
+        processedSchema.properties,
         (v, k) => generateField(v, k)
-      )
-    })),
-    withStateHandlers(
-      props => ({
+      );
+      return {
+        [`${formName}Schema`]: processedSchema,
+        [`${formName}FormSchema`]: processedFormSchema,
         [`${formName}FormData`]: props[`${formName}FormSchema`]
-      }),
-      {
-        [`${formName}FormUpdate`]: state => value => ({
-          [`${formName}FormData`]: deepmerge(
-            state[`${formName}FormData`],
-            value
-          )
-        })
-      }
-    )
+      };
+    },
+    {
+      [`${formName}FormUpdate`]: state => value => ({
+        [`${formName}FormData`]: deepmerge(state[`${formName}FormData`], value)
+      })
+    }
   );
+};
 
 export default withForm;
