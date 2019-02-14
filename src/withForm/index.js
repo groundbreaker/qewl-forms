@@ -1,4 +1,9 @@
-import { compose, withProps, withStateHandlers } from "recompose";
+import {
+  compose,
+  setDisplayName,
+  withProps,
+  withStateHandlers
+} from "recompose";
 import _ from "underscore";
 import { mb } from "../utils/vendor/mb.js";
 import { humanTitles } from "../utils/string";
@@ -85,25 +90,31 @@ const generateField = (value, key) => {
 };
 
 export const withForm = ({ input, formName }) => {
-  return withStateHandlers(
-    props => {
-      const processedSchema = processInput({ apiSchema, input });
-      const processedFormSchema = _.mapObject(
-        processedSchema.properties,
-        (v, k) => generateField(v, k)
-      );
-      return {
-        [`${formName}Schema`]: processedSchema,
-        [`${formName}FormSchema`]: processedFormSchema,
-        [`${formName}FormData`]: processedFormSchema
-      };
-    },
-    {
-      [`${formName}FormUpdate`]: state => value => ({
-        ...state,
-        [`${formName}FormData`]: deepmerge(state[`${formName}FormData`], value)
-      })
-    }
+  return compose(
+    setDisplayName("withFormQewl"),
+    withStateHandlers(
+      props => {
+        const processedSchema = processInput({ apiSchema, input });
+        const processedFormSchema = _.mapObject(
+          processedSchema.properties,
+          (v, k) => generateField(v, k)
+        );
+        return {
+          [`${formName}Schema`]: processedSchema,
+          [`${formName}FormSchema`]: processedFormSchema,
+          [`${formName}FormData`]: processedFormSchema
+        };
+      },
+      {
+        [`${formName}FormUpdate`]: state => value => ({
+          ...state,
+          [`${formName}FormData`]: deepmerge(
+            state[`${formName}FormData`],
+            value
+          )
+        })
+      }
+    )
   );
 };
 
