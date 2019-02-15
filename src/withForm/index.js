@@ -84,20 +84,23 @@ const generateField = (value, key) => {
   return _.mapObject(value.properties, (v, k) => generateField(v, k));
 };
 
-export const withForm = ({ input, formName }) =>
+export const withForm = ({ input, formName, mergeKey }) =>
   compose(
     withProps(({ apiSchema }) => ({
-      [`${formName}Schema`]: processInput({ apiSchema, input })
+      [`${formName}JSONSchema`]: processInput({ apiSchema, input })
     })),
     withProps(props => ({
       [`${formName}FormSchema`]: _.mapObject(
-        props[`${formName}Schema`].properties,
+        props[`${formName}JSONSchema`].properties,
         (v, k) => generateField(v, k)
       )
     })),
     withStateHandlers(
       props => ({
-        [`${formName}FormData`]: props[`${formName}FormSchema`]
+        [`${formName}FormData`]: {
+          ...props[`${formName}FormSchema`],
+          ...props[mergeKey]
+        }
       }),
       {
         [`${formName}FormUpdate`]: state => value => ({
