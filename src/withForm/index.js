@@ -1,10 +1,6 @@
-import {
-  compose,
-  setDisplayName,
-  withProps,
-  withStateHandlers
-} from "recompose";
+import { compose, setDisplayName, withStateHandlers } from "recompose";
 import _ from "underscore";
+import omit from "omit-deep";
 import { mb } from "../utils/vendor/mb.js";
 import { humanTitles } from "../utils/string";
 import * as deepmerge from "deepmerge";
@@ -89,20 +85,26 @@ const generateField = (value, key) => {
   return _.mapObject(value.properties, (v, k) => generateField(v, k));
 };
 
-export const withForm = ({ input, formName }) => {
+export const withForm = ({ input, formName, mergeKey }) => {
   return compose(
     setDisplayName(`withFormQewl(${formName})`),
     withStateHandlers(
-      props => {
+      ({ apiSchema, ...props }) => {
         const processedSchema = processInput({ apiSchema, input });
         const processedFormSchema = _.mapObject(
           processedSchema.properties,
           (v, k) => generateField(v, k)
         );
         return {
-          [`${formName}Schema`]: processedSchema,
+          [`${formName}JSONSchema`]: processedSchema,
           [`${formName}FormSchema`]: processedFormSchema,
-          [`${formName}FormData`]: processedFormSchema
+          [`${formName}FormData`]: omit(
+            {
+              ...processedFormSchema,
+              ...props[mergeKey]
+            },
+            ["__typename"]
+          )
         };
       },
       {
