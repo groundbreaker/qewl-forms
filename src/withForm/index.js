@@ -3,7 +3,7 @@ import _ from "underscore";
 import omit from "omit-deep";
 import { mb } from "../utils/vendor/mb.js";
 import { humanTitles } from "../utils/string";
-import * as deepmerge from "deepmerge";
+import merge from "../utils/merge";
 
 const scalars = {
   awsemail: "string",
@@ -95,6 +95,7 @@ export const withForm = ({ input, formName, mergeKey }) => {
           processedSchema.properties,
           (v, k) => generateField(v, k)
         );
+
         return {
           [`${formName}JSONSchema`]: processedSchema,
           [`${formName}FormSchema`]: processedFormSchema,
@@ -110,10 +111,7 @@ export const withForm = ({ input, formName, mergeKey }) => {
       {
         [`${formName}FormUpdate`]: state => value => ({
           ...state,
-          [`${formName}FormData`]: deepmerge(
-            state[`${formName}FormData`],
-            value
-          )
+          [`${formName}FormData`]: merge(state[`${formName}FormData`], value)
         })
       }
     )
