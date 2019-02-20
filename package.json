@@ -14,10 +14,9 @@
   },
   "dependencies": {
     "deepmerge": "^3.1.0",
-    "enjoi": "^5.0.1",
     "graphql": "^14.0.2",
     "graphql-tag": "^2.10.0",
-    "joi": "^14.3.1",
+    "jsonschema": "^1.2.4",
     "omit-deep": "^0.3.0",
     "pluralize": "^7.0.0",
     "react-apollo": "^2.2.4",

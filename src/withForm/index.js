@@ -1,6 +1,13 @@
-import { compose, setDisplayName, withStateHandlers } from "recompose";
+import {
+  compose,
+  setDisplayName,
+  withStateHandlers,
+  withPropsOnChange
+} from "recompose";
 import _ from "underscore";
 import omit from "omit-deep";
+import { validate } from "jsonschema";
+
 import { mb } from "../utils/vendor/mb.js";
 import { humanTitles } from "../utils/string";
 import merge from "../utils/merge";
@@ -79,7 +86,7 @@ const generateField = (value, key) => {
       return [];
     }
 
-    return "";
+    return null;
   }
 
   return _.mapObject(value.properties, (v, k) => generateField(v, k));
@@ -105,17 +112,57 @@ export const withForm = ({ input, formName, mergeKey }) => {
               ...props[mergeKey]
             },
             ["__typename"]
-          )
+          ),
+          [`${formName}FormErrors`]: {
+            errors: null,
+            disabled: true
+          }
         };
       },
       {
         [`${formName}FormUpdate`]: state => value => ({
           ...state,
           [`${formName}FormData`]: merge(state[`${formName}FormData`], value)
-        })
+        }),
+        setErrors: () => value => ({ [`${formName}FormErrors`]: value })
       }
+    ),
+    withPropsOnChange([`${formName}FormData`], props =>
+      props.setErrors(
+        validator(props[`${formName}FormData`], props[`${formName}JSONSchema`])
+      )
     )
   );
 };
 
 export default withForm;
+
+const validator = (formData, JSONSchema) => {
+  const result = validate(removeEmpty(formData), JSONSchema);
+  const errors = {};
+
+  result.errors.map(({ property, message }) => {
+    let propertyCopy = property.split(".").slice();
+    propertyCopy.shift();
+    propertyCopy.reduce((o, s, i) => {
+      if (i + 1 === propertyCopy.length) {
+        return (o[s] = { message });
+      }
+      return (o[s] = {});
+    }, errors);
+  });
+
+  return {
+    errors,
+    disabled: !result.valid
+  };
+};
+
+const removeEmpty = obj => {
+  Object.entries(obj).forEach(
+    ([key, val]) =>
+      (val && typeof val === "object" && removeEmpty(val)) ||
+      (val === "" && (obj[key] = null))
+  );
+  return obj;
+};
