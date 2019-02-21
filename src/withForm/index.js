@@ -28,7 +28,7 @@ const fieldTypes = ({ apiSchema, inputField, field }) => {
 
   const scalarOptions = {
     ENUM: {
-      type: "string",
+      type: ["string", null],
       enums: _.pluck(
         mb(["enumValues"])(_.findWhere(enums, { name: field.name })),
         "name"
@@ -41,13 +41,13 @@ const fieldTypes = ({ apiSchema, inputField, field }) => {
         input: mb(["name"])(_.findWhere(inputTypes, { name: field.name }))
       }),
     LIST: {
-      type: "array",
+      type: ["array", null],
       items:
         mb(["ofType"])(field) &&
         fieldTypes({ apiSchema, field: mb(["ofType"])(field), inputField })
     },
     SCALAR: {
-      type: scalars[field.name && field.name.toLowerCase()]
+      type: [scalars[field.name && field.name.toLowerCase()], null]
     }
   };
 
@@ -80,57 +80,38 @@ const processInput = ({ apiSchema, input }) => {
   return schema;
 };
 
-const generateField = (value, key) => {
-  if (!value.properties) {
-    if (value.items) {
-      return [];
-    }
+export const withForm = ({ input, formName, dataKey }) => {
+  const formData = formName ? `${formName}FormData` : `formData`;
+  const formErrors = formName ? `${formName}FormErrors` : `formErrors`;
+  const formUpdate = formName ? `${formName}FormUpdate` : `formUpdate`;
+  const schema = formName ? `${formName}Schema` : `schema`;
 
-    return null;
-  }
-
-  return _.mapObject(value.properties, (v, k) => generateField(v, k));
-};
-
-export const withForm = ({ input, formName, mergeKey }) => {
   return compose(
     setDisplayName(`withFormQewl(${formName})`),
     withStateHandlers(
-      ({ apiSchema, ...props }) => {
-        const processedSchema = processInput({ apiSchema, input });
-        const processedFormSchema = _.mapObject(
-          processedSchema.properties,
-          (v, k) => generateField(v, k)
-        );
-
-        return {
-          [`${formName}JSONSchema`]: processedSchema,
-          [`${formName}FormSchema`]: processedFormSchema,
-          [`${formName}FormData`]: omit(
-            {
-              ...processedFormSchema,
-              ...props[mergeKey]
-            },
-            ["__typename"]
-          ),
-          [`${formName}FormErrors`]: {
-            errors: null,
-            disabled: true
-          }
-        };
-      },
+      ({ apiSchema, ...props }) => ({
+        [schema]: processInput({ apiSchema, input }),
+        [formData]: omit(
+          {
+            ...props[dataKey]
+          },
+          ["__typename"]
+        ),
+        [formErrors]: {
+          errors: null,
+          disabled: true
+        }
+      }),
       {
-        [`${formName}FormUpdate`]: state => value => ({
+        [formUpdate]: state => value => ({
           ...state,
-          [`${formName}FormData`]: merge(state[`${formName}FormData`], value)
+          [formData]: merge(state[formData], value)
         }),
-        setErrors: () => value => ({ [`${formName}FormErrors`]: value })
+        setErrors: () => value => ({ [formErrors]: value })
       }
     ),
-    withPropsOnChange([`${formName}FormData`], props =>
-      props.setErrors(
-        validator(props[`${formName}FormData`], props[`${formName}JSONSchema`])
-      )
+    withPropsOnChange([formData], ({ setErrors, ...props }) =>
+      _.debounce(setErrors(validator(props[formData], props[schema])), 2000)
     )
   );
 };
@@ -138,18 +119,24 @@ export const withForm = ({ input, formName, mergeKey }) => {
 export default withForm;
 
 const validator = (formData, JSONSchema) => {
-  const result = validate(removeEmpty(formData), JSONSchema);
+  const result = validate(removeNullKeys(formData), JSONSchema);
   const errors = {};
 
-  result.errors.map(({ property, message }) => {
-    let propertyCopy = property.split(".").slice();
-    propertyCopy.shift();
-    propertyCopy.reduce((o, s, i) => {
-      if (i + 1 === propertyCopy.length) {
-        return (o[s] = { message });
-      }
-      return (o[s] = {});
-    }, errors);
+  result.errors.map(({ argument, property, message, ...rest }) => {
+    if (property !== "instance") {
+      let propertyCopy = property.split(".").slice();
+      propertyCopy.shift();
+      propertyCopy.reduce((o, s, i) => {
+        if (i + 1 === propertyCopy.length) {
+          return (o[s] = { message });
+        }
+        return (o[s] = {});
+      }, errors);
+    }
+
+    if (property === "instance") {
+      errors[argument] = { message };
+    }
   });
 
   return {
@@ -158,11 +145,17 @@ const validator = (formData, JSONSchema) => {
   };
 };
 
-const removeEmpty = obj => {
-  Object.entries(obj).forEach(
-    ([key, val]) =>
-      (val && typeof val === "object" && removeEmpty(val)) ||
-      (val === "" && (obj[key] = null))
-  );
-  return obj;
+export const removeNullKeys = formData => {
+  let formDataCopy = JSON.parse(JSON.stringify(formData));
+
+  Object.keys(formDataCopy).forEach(key => {
+    if (formDataCopy[key] && typeof formDataCopy[key] === "object") {
+      formDataCopy[key] = removeNullKeys(formDataCopy[key]);
+      if (_.isEmpty(formDataCopy[key])) delete formDataCopy[key];
+    } else if (formDataCopy[key] === undefined || formDataCopy[key] === null)
+      delete formDataCopy[key];
+    else formDataCopy[key] = formDataCopy[key];
+  });
+
+  return formDataCopy;
 };
