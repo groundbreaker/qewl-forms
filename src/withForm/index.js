@@ -1,9 +1,16 @@
-import { compose, setDisplayName, withStateHandlers } from "recompose";
+import {
+  compose,
+  setDisplayName,
+  withStateHandlers,
+  withPropsOnChange
+} from "recompose";
 import _ from "underscore";
 import omit from "omit-deep";
+import { validate } from "jsonschema";
+
 import { mb } from "../utils/vendor/mb.js";
 import { humanTitles } from "../utils/string";
-import * as deepmerge from "deepmerge";
+import merge from "../utils/merge";
 
 const scalars = {
   awsemail: "string",
@@ -21,7 +28,7 @@ const fieldTypes = ({ apiSchema, inputField, field }) => {
 
   const scalarOptions = {
     ENUM: {
-      type: "string",
+      type: ["string", null],
       enums: _.pluck(
         mb(["enumValues"])(_.findWhere(enums, { name: field.name })),
         "name"
@@ -34,13 +41,13 @@ const fieldTypes = ({ apiSchema, inputField, field }) => {
         input: mb(["name"])(_.findWhere(inputTypes, { name: field.name }))
       }),
     LIST: {
-      type: "array",
+      type: ["array", null],
       items:
         mb(["ofType"])(field) &&
         fieldTypes({ apiSchema, field: mb(["ofType"])(field), inputField })
     },
     SCALAR: {
-      type: scalars[field.name && field.name.toLowerCase()]
+      type: [scalars[field.name && field.name.toLowerCase()], null]
     }
   };
 
@@ -73,51 +80,82 @@ const processInput = ({ apiSchema, input }) => {
   return schema;
 };
 
-const generateField = (value, key) => {
-  if (!value.properties) {
-    if (value.items) {
-      return [];
-    }
+export const withForm = ({ input, formName, dataKey }) => {
+  const formData = formName ? `${formName}FormData` : `formData`;
+  const formErrors = formName ? `${formName}FormErrors` : `formErrors`;
+  const formUpdate = formName ? `${formName}FormUpdate` : `formUpdate`;
+  const schema = formName ? `${formName}Schema` : `schema`;
 
-    return "";
-  }
-
-  return _.mapObject(value.properties, (v, k) => generateField(v, k));
-};
-
-export const withForm = ({ input, formName, mergeKey }) => {
   return compose(
     setDisplayName(`withFormQewl(${formName})`),
     withStateHandlers(
-      ({ apiSchema, ...props }) => {
-        const processedSchema = processInput({ apiSchema, input });
-        const processedFormSchema = _.mapObject(
-          processedSchema.properties,
-          (v, k) => generateField(v, k)
-        );
-        return {
-          [`${formName}JSONSchema`]: processedSchema,
-          [`${formName}FormSchema`]: processedFormSchema,
-          [`${formName}FormData`]: omit(
-            {
-              ...processedFormSchema,
-              ...props[mergeKey]
-            },
-            ["__typename"]
-          )
-        };
-      },
+      ({ apiSchema, ...props }) => ({
+        [schema]: processInput({ apiSchema, input }),
+        [formData]: omit(
+          {
+            ...props[dataKey]
+          },
+          ["__typename"]
+        ),
+        [formErrors]: {
+          errors: null,
+          dataValid: true
+        }
+      }),
       {
-        [`${formName}FormUpdate`]: state => value => ({
+        [formUpdate]: state => value => ({
           ...state,
-          [`${formName}FormData`]: deepmerge(
-            state[`${formName}FormData`],
-            value
-          )
-        })
+          [formData]: merge(state[formData], value)
+        }),
+        setErrors: state => value => ({ ...state, [formErrors]: value })
       }
+    ),
+    withPropsOnChange([formData], ({ setErrors, ...props }) =>
+      _.debounce(setErrors(validator(props[formData], props[schema])), 2000)
     )
   );
 };
 
 export default withForm;
+
+const validator = (formData, JSONSchema) => {
+  const result = validate(formData, JSONSchema);
+  let errors = {};
+
+  result.errors.map(({ argument, property, message, ...rest }) => {
+    if (property !== "instance") {
+      let propertyCopy = property.split(".").slice();
+      propertyCopy.shift();
+      propertyCopy.reduce((o, s, i) => {
+        if (i + 1 === propertyCopy.length) {
+          return (o[s] = { message });
+        }
+        return (o[s] = {});
+      }, errors);
+    }
+
+    if (property === "instance") {
+      errors[argument] = { message };
+    }
+  });
+
+  return {
+    errors,
+    dataValid: !result.valid
+  };
+};
+
+export const removeNullKeys = formData => {
+  let formDataCopy = JSON.parse(JSON.stringify(formData));
+
+  Object.keys(formDataCopy).forEach(key => {
+    if (formDataCopy[key] && typeof formDataCopy[key] === "object") {
+      formDataCopy[key] = removeNullKeys(formDataCopy[key]);
+      if (_.isEmpty(formDataCopy[key])) delete formDataCopy[key];
+    } else if (formDataCopy[key] === undefined || formDataCopy[key] === null)
+      delete formDataCopy[key];
+    else formDataCopy[key] = formDataCopy[key];
+  });
+
+  return formDataCopy;
+};
