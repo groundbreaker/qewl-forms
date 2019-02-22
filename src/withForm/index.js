@@ -99,7 +99,7 @@ export const withForm = ({ input, formName, dataKey }) => {
         ),
         [formErrors]: {
           errors: null,
-          dataValid: true
+          dataValid: false
         }
       }),
       {
@@ -141,7 +141,7 @@ const validator = (formData, JSONSchema) => {
 
   return {
     errors,
-    dataValid: !result.valid
+    dataValid: result.valid
   };
 };
 
