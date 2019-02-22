@@ -5,4 +5,4 @@ const defaultOptions = {
 };
 
 export default (x, y, options) =>
-  deepmerge(x, y, Object.assign({}, options, defaultOptions));
+  deepmerge(x, y, { ...options, ...defaultOptions });

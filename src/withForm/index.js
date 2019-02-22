@@ -107,7 +107,7 @@ export const withForm = ({ input, formName, dataKey }) => {
           ...state,
           [formData]: merge(state[formData], value)
         }),
-        setErrors: () => value => ({ [formErrors]: value })
+        setErrors: state => value => ({ ...state, [formErrors]: value })
       }
     ),
     withPropsOnChange([formData], ({ setErrors, ...props }) =>
@@ -120,7 +120,7 @@ export default withForm;
 
 const validator = (formData, JSONSchema) => {
   const result = validate(removeNullKeys(formData), JSONSchema);
-  const errors = {};
+  let errors = {};
 
   result.errors.map(({ argument, property, message, ...rest }) => {
     if (property !== "instance") {
