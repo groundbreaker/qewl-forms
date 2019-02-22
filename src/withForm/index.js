@@ -119,7 +119,7 @@ export const withForm = ({ input, formName, dataKey }) => {
 export default withForm;
 
 const validator = (formData, JSONSchema) => {
-  const result = validate(removeNullKeys(formData), JSONSchema);
+  const result = validate(formData, JSONSchema);
   let errors = {};
 
   result.errors.map(({ argument, property, message, ...rest }) => {
