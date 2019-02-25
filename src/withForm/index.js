@@ -80,7 +80,7 @@ const processInput = ({ apiSchema, input }) => {
   return schema;
 };
 
-export const withForm = ({ input, formName, dataKey }) => {
+export const withForm = ({ input, formName, dataKey, mergeKey = [] }) => {
   const formData = formName ? `${formName}FormData` : `formData`;
   const formErrors = formName ? `${formName}FormErrors` : `formErrors`;
   const formUpdate = formName ? `${formName}FormUpdate` : `formUpdate`;
@@ -93,7 +93,8 @@ export const withForm = ({ input, formName, dataKey }) => {
         [schema]: processInput({ apiSchema, input }),
         [formData]: omit(
           {
-            ...props[dataKey]
+            ...console.log(mergeKey, mb(mergeKey)(props[dataKey])),
+            ...mb(mergeKey)(props[dataKey])
           },
           ["__typename"]
         ),
