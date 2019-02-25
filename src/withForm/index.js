@@ -91,13 +91,7 @@ export const withForm = ({ input, formName, dataKey, mergeKey = [] }) => {
     withStateHandlers(
       ({ apiSchema, ...props }) => ({
         [schema]: processInput({ apiSchema, input }),
-        [formData]: omit(
-          {
-            ...console.log(mergeKey, mb(mergeKey)(props[dataKey])),
-            ...mb(mergeKey)(props[dataKey])
-          },
-          ["__typename"]
-        ),
+        [formData]: omit({ ...mb(mergeKey)(props[dataKey]) }, ["__typename"]),
         [formErrors]: {
           errors: null,
           dataValid: false
