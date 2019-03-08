@@ -119,7 +119,8 @@ export const withForm = ({
   formName,
   dataKey,
   rjsf = false,
-  mergeKey = []
+  mergeKey = [],
+  defaultValues = {}
 }) => {
   const formData = formName ? `${formName}FormData` : `formData`;
   const formErrors = formName ? `${formName}FormErrors` : `formErrors`;
@@ -131,7 +132,10 @@ export const withForm = ({
     withStateHandlers(
       ({ apiSchema, ...props }) => ({
         [schema]: processInput({ apiSchema, input, rjsf }),
-        [formData]: omit({ ...mb(mergeKey)(props[dataKey]) }, ["__typename"]),
+        [formData]: omit(
+          { ...mb(mergeKey)(props[dataKey]), ...defaultValues },
+          ["__typename"]
+        ),
         [formErrors]: {
           errors: null,
           dataValid: false
