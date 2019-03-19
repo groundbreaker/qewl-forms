@@ -2,7 +2,8 @@ import {
   compose,
   setDisplayName,
   withStateHandlers,
-  withPropsOnChange
+  withPropsOnChange,
+  withHandlers
 } from "recompose";
 import _ from "underscore";
 import omit from "omit-deep";
@@ -149,9 +150,16 @@ export const withForm = ({
         setErrors: state => value => ({ ...state, [formErrors]: value })
       }
     ),
-    withPropsOnChange([formData], ({ setErrors, ...props }) =>
-      _.debounce(setErrors(validator(props[formData], props[schema])), 2000)
-    )
+    withHandlers({
+      validateFormData: ({ setErrors, ...props }) => optionalData => {
+        const errors = validator(
+          optionalData || props[formData],
+          props[schema]
+        );
+        setErrors(errors);
+        return errors;
+      }
+    })
   );
 };
 
