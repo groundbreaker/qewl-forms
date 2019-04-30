@@ -2,7 +2,6 @@ import {
   compose,
   setDisplayName,
   withStateHandlers,
-  withPropsOnChange,
   withHandlers
 } from "recompose";
 import _ from "underscore";
@@ -166,7 +165,7 @@ export const withForm = ({
 export default withForm;
 
 const validator = (formData, JSONSchema) => {
-  const result = validate(formData, JSONSchema);
+  const result = validate(deleteEmptyKeys(formData), JSONSchema);
   let errors = {};
 
   result.errors.map(({ argument, property, message, ...rest }) => {
@@ -190,6 +189,20 @@ const validator = (formData, JSONSchema) => {
     errors,
     dataValid: result.valid
   };
+};
+
+const deleteEmptyKeys = obj => {
+  for (let key in obj) {
+    if (!obj[key] || typeof obj[key] !== "object") {
+      continue;
+    }
+
+    deleteEmptyKeys(obj[key]);
+
+    if (Object.keys(obj[key]).length === 0) {
+      delete obj[key];
+    }
+  }
 };
 
 export const removeNullKeys = formData => {
