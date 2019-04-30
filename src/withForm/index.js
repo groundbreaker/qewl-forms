@@ -165,8 +165,7 @@ export const withForm = ({
 export default withForm;
 
 const validator = (formData, JSONSchema) => {
-  deleteEmptyKeys(formData);
-  const result = validate(formData, JSONSchema);
+  const result = validate(deleteEmptyKeys(formData), JSONSchema);
   let errors = {};
 
   result.errors.map(({ argument, property, message, ...rest }) => {
@@ -192,7 +191,7 @@ const validator = (formData, JSONSchema) => {
   };
 };
 
-function deleteEmptyKeys(obj) {
+const deleteEmptyKeys = obj => {
   for (let key in obj) {
     if (!obj[key] || typeof obj[key] !== "object") {
       continue;
@@ -204,7 +203,7 @@ function deleteEmptyKeys(obj) {
       delete obj[key];
     }
   }
-}
+};
 
 export const removeNullKeys = formData => {
   let formDataCopy = JSON.parse(JSON.stringify(formData));
