@@ -24,7 +24,7 @@ const scalars = {
   id: "string"
 };
 
-const fieldTypes = ({ apiSchema, inputField, field, rjsf }) => {
+const fieldTypes = ({ apiSchema, inputField, field }) => {
   const { enums, inputTypes } = apiSchema;
 
   const getEnums = _.memoize(() =>
@@ -33,33 +33,6 @@ const fieldTypes = ({ apiSchema, inputField, field, rjsf }) => {
       "name"
     )
   );
-
-  const rjsfScalarOptions = {
-    ENUM: {
-      type: "string",
-      enum: getEnums(),
-      enumNames: getEnums().map(value => humanTitles(value))
-    },
-    INPUT_OBJECT:
-      mb(["name"])(_.findWhere(inputTypes, { name: field.name })) &&
-      processInput({
-        apiSchema,
-        input: mb(["name"])(_.findWhere(inputTypes, { name: field.name })),
-        rjsf
-      }),
-    LIST: {
-      type: "array",
-      items:
-        mb(["ofType"])(field) &&
-        fieldTypes({
-          apiSchema,
-          field: mb(["ofType"])(field),
-          inputField,
-          rjsf
-        })
-    },
-    SCALAR: { type: scalars[field.name && field.name.toLowerCase()] }
-  };
 
   const scalarOptions = {
     ENUM: {
@@ -85,12 +58,12 @@ const fieldTypes = ({ apiSchema, inputField, field, rjsf }) => {
   };
 
   return {
-    ...(rjsf ? rjsfScalarOptions[field.kind] : scalarOptions[field.kind]),
+    ...scalarOptions[field.kind],
     ...{ title: humanTitles(inputField.name) }
   };
 };
 
-const processInput = ({ apiSchema, input, rjsf }) => {
+const processInput = ({ apiSchema, input }) => {
   const { inputTypes } = apiSchema;
   const schema = { properties: {}, required: [], type: "object" };
   const inputType = _.findWhere(inputTypes, { name: input });
@@ -106,8 +79,7 @@ const processInput = ({ apiSchema, input, rjsf }) => {
     schema.properties[inputField.name] = fieldTypes({
       apiSchema,
       inputField,
-      field,
-      rjsf
+      field
     });
   });
 
@@ -118,7 +90,6 @@ export const withForm = ({
   input,
   formName,
   dataKey,
-  rjsf = false,
   mergeKey = [],
   defaultValues = {}
 }) => {
@@ -131,7 +102,7 @@ export const withForm = ({
     setDisplayName(`withFormQewl(${formName})`),
     withStateHandlers(
       ({ apiSchema, ...props }) => ({
-        [schema]: processInput({ apiSchema, input, rjsf }),
+        [schema]: processInput({ apiSchema, input }),
         [formData]: omit(
           { ...mb(mergeKey)(props[dataKey]), ...defaultValues },
           ["__typename"]
