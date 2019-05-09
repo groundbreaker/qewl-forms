@@ -11,6 +11,11 @@ const validSSN = /^[\d]{3}-[\d]{2}-[\d]{4}$/;
 const validEIN = /^[\d]{2}-[\d]{7}$/;
 
 /**
+ *  Helpers
+ */
+const handleRequired = val => val === undefined && "missing_required";
+
+/**
  *  Type validator functions.
  *  Named after types, should be Capitalized.
  */
@@ -22,17 +27,41 @@ const AWSPhone = value => {
     return number.isValid();
   } catch (err) {
     if (err instanceof ParseError) return "phone_" + err.message.toLowerCase();
+    return handleRequired(value) || false;
   }
 };
-const EIN = value => validEIN.test(value) || "invalid_EIN";
-const ID = value => isUuid.v4(value) || "invalid_UUID";
-const SSN = value => validSSN.test(value) || "invalid_SSN";
-const String = value => {
-  const valueType = typeof value;
-  return valueType === "string" || `unexpected_${valueType}`;
+const EIN = value =>
+  handleRequired(value) || validEIN.test(value) || "invalid_EIN";
+const ID = value => handleRequired(value) || isUuid.v4(value) || "invalid_UUID";
+const SSN = value =>
+  handleRequired(value) || validSSN.test(value) || "invalid_SSN";
+const Int = value =>
+  handleRequired(value) || Number.isInteger(value) || "invalid_integer";
+const Boolean = value =>
+  handleRequired(value) || typeof value === "boolean" || "invalid_boolean";
+const AWSJSON = value => {
+  try {
+    JSON.parse(value);
+    return true;
+  } catch (error) {
+    return handleRequired(value) || "invalid_JSON";
+  }
 };
+const String = value =>
+  handleRequired(value) || typeof value === "string" || "invalid_string";
 
-const types = { ID, AWSEmail, String, AWSDate, AWSPhone, SSN, EIN };
+const types = {
+  AWSEmail,
+  AWSDate,
+  AWSJSON,
+  AWSPhone,
+  Boolean,
+  EIN,
+  ID,
+  Int,
+  String,
+  SSN
+};
 
 /**
  * Higher kinded types / Generics (not really)
@@ -73,7 +102,8 @@ const typeMatcher = ({ apiSchema, field, required = false }) => {
 
     case "ENUM": {
       const enums = apiSchema.enums[match.name].enumValues;
-      return struct.enum([...enums.map(({ name }) => name)]);
+      const enumValidator = struct.enum([...enums.map(({ name }) => name)]);
+      return required ? enumValidator : Option(enumValidator);
     }
 
     default:

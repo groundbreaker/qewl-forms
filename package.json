@@ -20,6 +20,7 @@
     "is-uuid": "^1.0.2",
     "jsonschema": "^1.2.4",
     "libphonenumber-js": "^1.7.16",
+    "object-path": "^0.11.4",
     "omit-deep": "^0.3.0",
     "pluralize": "^7.0.0",
     "react-apollo": "^2.2.4",

@@ -6,10 +6,12 @@ import {
 } from "recompose";
 import omit from "omit-deep";
 
-import { validator } from "../validation";
+import { createValidator } from "../validation";
 import { mb } from "../utils/vendor/mb.js";
 import merge from "../utils/merge";
 import { processInput } from "../utils/json-schema";
+import { errorReducer } from "../utils/errorReducer";
+import { createApiDict } from "../../test/test-utils";
 
 export const withForm = ({
   input,
@@ -45,15 +47,25 @@ export const withForm = ({
         setErrors: state => value => ({ ...state, [formErrors]: value })
       }
     ),
-    withHandlers({
-      validateFormData: ({ setErrors, ...props }) => optionalData => {
-        const errors = validator(
-          optionalData || props[formData],
-          props[schema]
-        );
-        setErrors(errors);
-        return errors;
-      }
+    withHandlers(initialProps => {
+      // expensive ops.  Do them once, keep in closure.
+      // API dict creation should really only happen once, or maybe on build.
+      const apiSchema = createApiDict(initialProps.apiSchema);
+      const validator = createValidator({ apiSchema, inputType: input });
+
+      return {
+        validateFormData: ({ setErrors, ...props }) => optionalData => {
+          const data = optionalData || props.formData;
+          try {
+            validator(data);
+            setErrors({ errors: null, dataValid: true });
+          } catch (err) {
+            const errors = err.errors.reduce(errorReducer, {});
+            setErrors({ errors, dataValid: false });
+            return errors;
+          }
+        }
+      };
     })
   );
 };
