@@ -13,14 +13,18 @@ const validEIN = /^[\d]{2}-[\d]{7}$/;
 /**
  *  Helpers
  */
-const handleRequired = val => val === undefined && "missing_required";
+const handleRequired = val =>
+  (val === undefined || val === "") && "missing_required";
 
 /**
  *  Type validator functions.
  *  Named after types, should be Capitalized.
  */
-const AWSDate = value => validISO8601.test(value) || "invalid_date";
-const AWSEmail = value => isEmail(value) || "invalid_email";
+const AWSDate = value =>
+  handleRequired(value) || validISO8601.test(value) || "invalid_date";
+const AWSEmail = value =>
+  handleRequired(value) || isEmail(value) || "invalid_email";
+
 const AWSPhone = value => {
   try {
     const number = parsePhoneNumber(value);

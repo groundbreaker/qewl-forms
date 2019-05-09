@@ -48,17 +48,18 @@ export const withForm = ({
       }
     ),
     withHandlers(initialProps => {
-      // expensive ops.  Do them once, keep in closure.
+      // Expensive ops.  Do them once, keep in closure.
       // API dict creation should really only happen once, or maybe on build.
       const apiSchema = createApiDict(initialProps.apiSchema);
       const validator = createValidator({ apiSchema, inputType: input });
 
       return {
-        validateFormData: ({ setErrors, ...props }) => optionalData => {
-          const data = optionalData || props.formData;
+        validateFormData: ({ setErrors }) => data => {
           try {
             validator(data);
-            setErrors({ errors: null, dataValid: true });
+            const noErr = { errors: null, dataValid: true };
+            setErrors(noErr);
+            return noErr;
           } catch (err) {
             const errors = err.errors.reduce(errorReducer, {});
             setErrors({ errors, dataValid: false });
