@@ -5,7 +5,7 @@ module.exports = {
   isValid: false,
   reason: "invalid_integer",
   message:
-    'Expected a value of type `Int` for `sections.0.equityRange.0.to` but received `""`.',
+    'Expected a value of type `Int` for `sections.0.equityRange.0.to` but received `"a"`.',
   testData: {
     ...goodData,
     sections: [
@@ -15,7 +15,7 @@ module.exports = {
           {
             ordinal: 6,
             from: 13,
-            to: ""
+            to: "a"
           }
         ]
       }

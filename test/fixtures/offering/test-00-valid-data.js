@@ -25,42 +25,42 @@ module.exports = {
         info: [
           {
             content: {
-              html: "",
+              html: "<html />",
               json: '"AWSJSON example string"'
             },
             ordinal: 0
           },
           {
             content: {
-              html: "",
+              html: "<html />",
               json: "{}"
             },
             ordinal: 1
           },
           {
             content: {
-              html: "",
+              html: "<html />",
               json: true
             },
             ordinal: 2
           },
           {
             content: {
-              html: "",
+              html: "<html />",
               json: "[1, 2, 3]"
             },
             ordinal: 3
           },
           {
             content: {
-              html: "",
+              html: "<html />",
               json: `{\"upvotes\": 10}`
             },
             ordinal: 3
           },
           {
             content: {
-              html: "",
+              html: "<html />",
               json: 1000
             },
             ordinal: 3
@@ -78,11 +78,11 @@ module.exports = {
               {
                 ordinal: 1,
                 key: "Hello",
-                value: ""
+                value: "Value"
               },
               {
                 ordinal: 2,
-                key: "",
+                key: "Key",
                 value: "World"
               }
             ],

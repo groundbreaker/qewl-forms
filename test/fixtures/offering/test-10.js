@@ -13,7 +13,7 @@ module.exports = {
         info: [
           {
             content: {
-              html: "",
+              html: "<html />",
               json: "Unquoted String"
             },
             ordinal: 0
