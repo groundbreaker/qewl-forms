@@ -1,7 +1,7 @@
 module.exports = {
   inputType: "CreateContactInput",
   isValid: false,
-  reason: "unexpected_object",
+  reason: "invalid_string",
   testData: {
     firstName: "Patrick",
     lastName: "Kilgore",

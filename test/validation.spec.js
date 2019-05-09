@@ -39,45 +39,62 @@ describe("Validation creator...", () => {
   });
 });
 
-describe("With fixture...", () => {
-  fs.readdirSync(fixturesPath).forEach(fixture => {
-    describe(`${fixture}...`, () => {
-      const fixturePath = `${fixturesPath}/${fixture}`;
-      const {
-        inputType,
-        testData,
-        isValid,
-        errorMatch,
-        reason
-      } = require(fixturePath); // TODO: Make async.
+describe("Fixtures for...", () => {
+  fs.readdirSync(fixturesPath).forEach(folder => {
+    describe(folder, () => {
+      const currentFolder = path.join(fixturesPath, folder);
+      fs.readdirSync(currentFolder).forEach(fixture => {
+        describe(`${fixture}...`, () => {
+          const fixturePath = `${currentFolder}/${fixture}`;
+          const {
+            inputType,
+            testData,
+            isValid,
+            errorMatch,
+            reason,
+            message
+          } = require(fixturePath); // TODO: Make async.
 
-      let validator;
+          let validator;
 
-      // Make sure superstruct does its thing.
-      it(`...can construct validator without errors.`, () => {
-        validator = createValidator({ apiSchema, inputType });
-        expect(typeof validator).toBe("function");
-      });
+          // Make sure superstruct does its thing.
+          it(`...can construct validator without errors.`, () => {
+            validator = createValidator({ apiSchema, inputType });
+            expect(typeof validator).toBe("function");
+          });
 
-      // Does validation match fixture definition?
-      it(`...returns the correct validation result.`, () => {
-        if (isValid) {
-          expect(() => validator(testData)).not.toThrow(errorMatch);
-        } else {
-          expect(() => validator(testData)).toThrow(errorMatch);
-        }
-      });
+          // Does validation match fixture definition?
+          it(`...returns the correct validation result.`, () => {
+            if (isValid) {
+              expect(() => validator(testData)).not.toThrow(errorMatch);
+            } else {
+              expect(() => validator(testData)).toThrow(errorMatch);
+            }
+          });
 
-      // Does the reason match (if defined for this fixture)
-      if (reason) {
-        it(`...returns the correct reason result.`, () => {
-          try {
-            validator(testData);
-          } catch (err) {
-            expect(err.reason).toBe(reason);
+          // Does the reason match (if defined for this fixture)
+          if (reason) {
+            it(`...returns the correct reason result.`, () => {
+              try {
+                validator(testData);
+              } catch (err) {
+                expect(err.reason).toBe(reason);
+              }
+            });
+          }
+
+          // Does the message match (if defined for this fixture)
+          if (message) {
+            it(`...returns the correct error message.`, () => {
+              try {
+                validator(testData);
+              } catch (err) {
+                expect(err.message).toBe(message);
+              }
+            });
           }
         });
-      }
+      });
     });
   });
 });
