@@ -4,8 +4,8 @@ module.exports = {
   inputType: "UpdateDealInput",
   isValid: false,
   reason: "invalid_string",
-  message:
-    "Expected a value of type `String` for `sections.0.cost.0.items.0.key` but received `null`.",
+  // message:
+  //   "Expected a value of type `String` for `sections.0.cost.0.items.0.key` but received `null`.",
   testData: {
     ...goodData,
     sections: [

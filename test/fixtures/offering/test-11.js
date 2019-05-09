@@ -4,8 +4,8 @@ module.exports = {
   inputType: "UpdateDealInput",
   isValid: false,
   reason: "missing_required",
-  message:
-    "Expected a value of type `Int` for `sections.0.list.0.items.0.ordinal` but received `undefined`.",
+  // message:
+  //   "Expected a value of type `Int` for `sections.0.list.0.items.0.ordinal` but received `undefined`.",
   testData: {
     ...goodData,
     sections: [

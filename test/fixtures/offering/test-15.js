@@ -4,8 +4,8 @@ module.exports = {
   inputType: "UpdateDealInput",
   isValid: false,
   reason: "invalid_integer",
-  message:
-    'Expected a value of type `Int` for `sections.0.equityRange.0.to` but received `"a"`.',
+  // message:
+  //   'Expected a value of type `Int` for `sections.0.equityRange.0.to` but received `"a"`.',
   testData: {
     ...goodData,
     sections: [
