@@ -10,18 +10,21 @@
     "build": "webpack-cli --mode=production",
     "dev": "yarn build -w",
     "prepare": "yarn build",
-    "test": "jest"
+    "test": "jest --coverage",
+    "watch-tests": "jest --watch"
   },
   "dependencies": {
-    "ajv": "^6.10.0",
     "deepmerge": "^3.1.0",
     "graphql": "^14.0.2",
     "graphql-tag": "^2.10.0",
+    "is-uuid": "^1.0.2",
     "jsonschema": "^1.2.4",
+    "libphonenumber-js": "^1.7.16",
     "omit-deep": "^0.3.0",
     "pluralize": "^7.0.0",
     "react-apollo": "^2.2.4",
     "recompose": "^0.30.0",
+    "superstruct": "^0.6.1",
     "underscore": "^1.9.1",
     "underscore.string": "^3.3.5"
   },
@@ -30,6 +33,7 @@
     "@babel/core": "^7.1.2",
     "@babel/polyfill": "^7.0.0",
     "@babel/preset-env": "^7.1.0",
+    "babel-jest": "^24.8.0",
     "babel-loader": "^8.0.4",
     "eslint": "^5.16.0",
     "eslint-config-prettier": "^4.2.0",
