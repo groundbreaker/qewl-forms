@@ -21,8 +21,7 @@ const AWSPhone = value => {
     const number = parsePhoneNumber(value);
     return number.isValid();
   } catch (err) {
-    if (err instanceof ParseError)
-      return err.message || "invalid_phone_parse_error";
+    if (err instanceof ParseError) return "phone_" + err.message.toLowerCase();
   }
 };
 const EIN = value => validEIN.test(value) || "invalid_EIN";

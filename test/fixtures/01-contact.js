@@ -1,7 +1,7 @@
 module.exports = {
   inputType: "CreateContactInput",
   isValid: false,
-  reason: "INVALID_COUNTRY",
+  reason: "phone_invalid_country",
   testData: {
     firstName: "Patrick",
     lastName: "Kilgore",

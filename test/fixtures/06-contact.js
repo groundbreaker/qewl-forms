@@ -1,7 +1,7 @@
 module.exports = {
   inputType: "CreateContactInput",
   isValid: false,
-  reason: "invalid_phone_unknown",
+  reason: "phone_not_a_number",
   testData: {
     firstName: "Patrick",
     lastName: "Kilgore",
@@ -15,7 +15,7 @@ module.exports = {
     ],
     phones: [
       {
-        number: "123invalid",
+        number: "+1----------",
         label: "WORK"
       }
     ]
