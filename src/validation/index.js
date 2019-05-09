@@ -90,13 +90,10 @@ export const createValidator = ({ apiSchema, inputType }) => {
 
   if (!fields) throw new Error(`InvalidInputType: ${inputType}`);
 
-  const validationConfig = fields.reduce(
-    (config, field) => ({
-      ...config,
-      [field.name]: typeMatcher({ apiSchema, field })
-    }),
-    {}
-  );
+  const validationConfig = fields.reduce((config, field) => {
+    config[field.name] = typeMatcher({ apiSchema, field });
+    return config;
+  }, {});
 
   return struct(validationConfig);
 };
