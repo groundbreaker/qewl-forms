@@ -30,7 +30,7 @@ const AWSPhone = value => {
     const number = parsePhoneNumber(value);
     return number.isValid();
   } catch (err) {
-    if (err instanceof ParseError) return "phone_" + err.message.toLowerCase();
+    if (err instanceof ParseError) return `phone_${err.message.toLowerCase()}`;
     return handleRequired(value) || false;
   }
 };
