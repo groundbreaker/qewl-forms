@@ -1363,6 +1363,11 @@ balanced-match@^1.0.0:
   resolved "https://registry.yarnpkg.com/balanced-match/-/balanced-match-1.0.0.tgz#89b4d199ab2bee49de164ea02b89ce462d71b767"
   integrity sha1-ibTRmasr7kneFk6gK4nORi1xt2c=
 
+bank-routing-number-validator@^0.0.4:
+  version "0.0.4"
+  resolved "https://registry.yarnpkg.com/bank-routing-number-validator/-/bank-routing-number-validator-0.0.4.tgz#ef6bd108f95404afebee61de0e80fddb12a4b2b2"
+  integrity sha1-72vRCPlUBK/r7mHeDoD92xKksrI=
+
 base64-js@^1.0.2:
   version "1.3.0"
   resolved "https://registry.yarnpkg.com/base64-js/-/base64-js-1.3.0.tgz#cab1e6118f051095e58b5281aea8c1cd22bfc0e3"

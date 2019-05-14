@@ -1,7 +1,10 @@
-import { superstruct } from "superstruct";
+import { ABARoutingNumberIsValid as isRouting } from "bank-routing-number-validator";
 import isUuid from "is-uuid";
-import isEmail from "../utils/validate-rfc822-email";
 import { parsePhoneNumber, ParseError } from "libphonenumber-js";
+import { superstruct } from "superstruct";
+
+import isAccount from "../utils/validate-bank-account";
+import isEmail from "../utils/validate-rfc822-email";
 
 /**
  * Cached compiled regexes for performance.
@@ -34,6 +37,10 @@ const AWSPhone = value => {
     return handleRequired(value) || false;
   }
 };
+const Routing = value =>
+  handleRequired(value) || isRouting(value) || "invalid_routing_number";
+const Account = value =>
+  handleRequired(value) || isAccount(value) || "invalid_account_number";
 const EIN = value =>
   handleRequired(value) || validEIN.test(value) || "invalid_EIN";
 const ID = value => handleRequired(value) || isUuid.v4(value) || "invalid_UUID";
@@ -55,6 +62,7 @@ const String = value =>
   handleRequired(value) || typeof value === "string" || "invalid_string";
 
 const types = {
+  Account,
   AWSEmail,
   AWSDate,
   AWSJSON,
@@ -63,6 +71,7 @@ const types = {
   EIN,
   ID,
   Int,
+  Routing,
   String,
   SSN
 };
@@ -88,12 +97,19 @@ const typeMatcher = ({ apiSchema, field, required = false }) => {
   const match = field.type || field.ofType;
 
   // Custom Validators
-  if (field.name === "taxId") {
-    const map = { SSN: "SSN", ITIN: "SSN", EIN: "EIN" };
-    return struct.dynamic((value, parent) => {
-      const type = map[parent.taxIdType] || struct("string");
-      return required ? type : Option(type);
-    });
+  switch (field.name) {
+    case "taxId": {
+      const map = { SSN: "SSN", ITIN: "SSN", EIN: "EIN" };
+      return struct.dynamic((value, parent) => {
+        const type = map[parent.taxIdType] || struct("string");
+        return required ? type : Option(type);
+      });
+    }
+    case "accountNumber":
+      return required ? "Account" : Option("Account");
+    case "routingNumber":
+      return required ? "Routing" : Option("Routing");
+    // Intentionally no default, fallthrough to generic validation.
   }
 
   // Fallback to validation based on graphql types.

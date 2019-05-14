@@ -14,6 +14,7 @@
     "watch-tests": "jest --watch"
   },
   "dependencies": {
+    "bank-routing-number-validator": "^0.0.4",
     "deepmerge": "^3.1.0",
     "graphql": "^14.0.2",
     "graphql-tag": "^2.10.0",
