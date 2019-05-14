@@ -28,7 +28,7 @@ const AWSEmail = value =>
 const AWSPhone = value => {
   try {
     const number = parsePhoneNumber(value);
-    return number.isValid();
+    return number.isValid() || "invalid_phone";
   } catch (err) {
     if (err instanceof ParseError) return `phone_${err.message.toLowerCase()}`;
     return handleRequired(value) || false;
@@ -87,6 +87,16 @@ const struct = superstruct({ types });
 const typeMatcher = ({ apiSchema, field, required = false }) => {
   const match = field.type || field.ofType;
 
+  // Custom Validators
+  if (field.name === "taxId") {
+    const map = { SSN: "SSN", ITIN: "SSN", EIN: "EIN" };
+    return struct.dynamic((value, parent) => {
+      const type = map[parent.taxIdType] || struct("string");
+      return required ? type : Option(type);
+    });
+  }
+
+  // Fallback to validation based on graphql types.
   switch (match.kind) {
     case "NON_NULL":
       return typeMatcher({ apiSchema, field: match, required: true });
@@ -95,7 +105,7 @@ const typeMatcher = ({ apiSchema, field, required = false }) => {
       return required ? match.name : Option(match.name);
 
     case "INPUT_OBJECT": {
-      const subField = createValidator({ apiSchema, inputType: match.name });
+      const subField = setupValidator({ apiSchema, inputType: match.name });
       return required ? subField : Option(subField);
     }
 
@@ -119,7 +129,9 @@ const typeMatcher = ({ apiSchema, field, required = false }) => {
  * Lookup `inputType` in `apiSchema.inputTypes` and dynamically construct
  * superstruct validator from inputType fields defined in the `apiSchema`.
  */
-export const createValidator = ({ apiSchema, inputType }) => {
+export const createValidator = args => struct(setupValidator(args));
+
+const setupValidator = ({ apiSchema, inputType }) => {
   const fields = apiSchema.inputTypes[inputType].inputFields;
 
   if (!fields) throw new Error(`InvalidInputType: ${inputType}`);
@@ -129,5 +141,5 @@ export const createValidator = ({ apiSchema, inputType }) => {
     return config;
   }, {});
 
-  return struct(validationConfig);
+  return validationConfig;
 };

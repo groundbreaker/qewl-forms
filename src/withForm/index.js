@@ -14,7 +14,6 @@ import { processInput } from "../utils/json-schema";
 import { errorReducer } from "../utils/errorReducer";
 import { createApiDict } from "../../test/test-utils";
 
-
 export const withForm = ({
   input,
   formName,
@@ -57,12 +56,14 @@ export const withForm = ({
 
       return {
         validateFormData: ({ setErrors }) => data => {
+          console.log("validating", data);
           try {
             validator(data);
             const noErr = { errors: null, dataValid: true };
             setErrors(noErr);
             return noErr;
           } catch (err) {
+            if (!Array.isArray(err.errors)) throw err;
             const errors = err.errors.reduce(errorReducer, {});
             setErrors({ errors, dataValid: false });
             return errors;
