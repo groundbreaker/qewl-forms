@@ -1,7 +1,7 @@
 module.exports = {
   inputType: "UpdateInvestorAccountIndividualInput",
   isValid: false,
-  reason: "invalid_date",
+  reason: "invalid_EIN",
   testData: {
     id: "54047248-9a94-4f2b-8791-14c9cfa189bd",
     type: "INDIVIDUAL",
@@ -31,8 +31,8 @@ module.exports = {
     details: {
       name: "Savings Account",
       taxIdType: "EIN",
-      taxId: "13-1431413",
-      dateOfBirth: "1997-2-04"
+      taxId: "13-143141",
+      dateOfBirth: "1997-02-04a"
     }
   }
 };
