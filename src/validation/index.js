@@ -1,5 +1,7 @@
 import { ABARoutingNumberIsValid as isRouting } from "bank-routing-number-validator";
 import isUuid from "is-uuid";
+import isUrl from "is-url";
+import isIP from "isipaddress";
 import { parsePhoneNumber, ParseError } from "libphonenumber-js";
 import { superstruct } from "superstruct";
 
@@ -9,9 +11,11 @@ import isEmail from "../utils/validate-rfc822-email";
 /**
  * Cached compiled regexes for performance.
  */
-const validISO8601 = /^([+-]?\d{4}(?!\d{2}\b))((-?)((0[1-9]|1[0-2])(\3([12]\d|0[1-9]|3[01]))?|W([0-4]\d|5[0-2])(-?[1-7])?|(00[1-9]|0[1-9]\d|[12]\d{2}|3([0-5]\d|6[1-6])))([T\s]((([01]\d|2[0-3])((:?)[0-5]\d)?|24:?00)([.,]\d+(?!:))?)?(\17[0-5]\d([.,]\d+)?)?([zZ]|([+-])([01]\d|2[0-3]):?([0-5]\d)?)?)?)?(Z|[+-](?:2[0-3]|[01][0-9])(?::?(?:[0-5][0-9]))?)?$/;
-const validSSN = /^[\d]{3}-[\d]{2}-[\d]{4}$/;
+const validAWSDate = /^(\d{4}(?:(?:(?:-)?(?:00[1-9]|0[1-9][0-9]|[1-2][0-9][0-9]|3[0-5][0-9]|36[0-6]))?|(?:(?:-)?(?:1[0-2]|0[1-9]))?|(?:(?:-)?(?:1[0-2]|0[1-9])(?:-)?(?:0[1-9]|[12][0-9]|3[01]))?|(?:(?:-)?W(?:0[1-9]|[1-4][0-9]5[0-3]))?|(?:(?:-)?W(?:0[1-9]|[1-4][0-9]5[0-3])(?:-)?[1-7])?)?)(Z|[+-]\d{2}:\d{2})?$/;
+const validAWSDateTime = /^([+-]?\d{4}(?!\d{2}\b))((-?)((0[1-9]|1[0-2])(\3([12]\d|0[1-9]|3[01]))?|W([0-4]\d|5[0-2])(-?[1-7])?|(00[1-9]|0[1-9]\d|[12]\d{2}|3([0-5]\d|6[1-6])))([T\s]((([01]\d|2[0-3])((:?)[0-5]\d)?|24:?00)([.,]\d+(?!:))?)?(\17[0-5]\d([.,]\d+)?)?([zZ]|([+-])([01]\d|2[0-3]):?([0-5]\d)?)?)?)?$/;
+const validAWSTime = /^(2[0-3]|[01][0-9]):?([0-5][0-9]):?([0-5][0-9])(\.[0-9]{0,9})?(Z|[+-]\d{2}:\d{2})?$/;
 const validEIN = /^[\d]{2}-[\d]{7}$/;
+const validSSN = /^[\d]{3}-[\d]{2}-[\d]{4}$/;
 
 /**
  *  Helpers
@@ -23,11 +27,24 @@ const handleRequired = val =>
  *  Type validator functions.
  *  Named after types, should be Capitalized.
  */
+const Account = value =>
+  handleRequired(value) || isAccount(value) || "invalid_account_number";
 const AWSDate = value =>
-  handleRequired(value) || validISO8601.test(value) || "invalid_date";
+  handleRequired(value) || validAWSDate.test(value) || "invalid_date";
+const AWSDateTime = value =>
+  handleRequired(value) || validAWSDateTime.test(value) || "invalid_datetime";
 const AWSEmail = value =>
   handleRequired(value) || isEmail(value) || "invalid_email";
-
+const AWSIPAddress = value =>
+  handleRequired(value) || isIP.test(value) || "invalid_ip";
+const AWSJSON = value => {
+  try {
+    JSON.parse(value);
+    return true;
+  } catch (error) {
+    return handleRequired(value) || "invalid_JSON";
+  }
+};
 const AWSPhone = value => {
   try {
     const number = parsePhoneNumber(value);
@@ -37,36 +54,38 @@ const AWSPhone = value => {
     return handleRequired(value) || false;
   }
 };
-const Routing = value =>
-  handleRequired(value) || isRouting(value) || "invalid_routing_number";
-const Account = value =>
-  handleRequired(value) || isAccount(value) || "invalid_account_number";
+const AWSTime = value =>
+  handleRequired(value) || validAWSTime.test(value) || "invalid_time";
+const AWSTimestamp = value =>
+  handleRequired(value) || Number.isInteger(value) || "invalid_timestamp";
+const AWSUrl = value => handleRequired(value) || isUrl(value) || "invalid_time";
+const Boolean = value =>
+  handleRequired(value) || typeof value === "boolean" || "invalid_boolean";
 const EIN = value =>
   handleRequired(value) || validEIN.test(value) || "invalid_EIN";
 const ID = value => handleRequired(value) || isUuid.v4(value) || "invalid_UUID";
-const SSN = value =>
-  handleRequired(value) || validSSN.test(value) || "invalid_SSN";
 const Int = value =>
   handleRequired(value) || Number.isInteger(value) || "invalid_integer";
-const Boolean = value =>
-  handleRequired(value) || typeof value === "boolean" || "invalid_boolean";
-const AWSJSON = value => {
-  try {
-    JSON.parse(value);
-    return true;
-  } catch (error) {
-    return handleRequired(value) || "invalid_JSON";
-  }
-};
+const Routing = value =>
+  handleRequired(value) || isRouting(value) || "invalid_routing_number";
+const SSN = value =>
+  handleRequired(value) || validSSN.test(value) || "invalid_SSN";
 const String = value =>
   handleRequired(value) || typeof value === "string" || "invalid_string";
+const Float = value =>
+  handleRequired(value) || typeof value === "number" || "invalid_float";
 
 const types = {
   Account,
   AWSEmail,
   AWSDate,
+  AWSDateTime,
+  AWSIPAddress,
   AWSJSON,
   AWSPhone,
+  AWSTime,
+  AWSTimestamp,
+  AWSUrl,
   Boolean,
   EIN,
   ID,
