@@ -38,6 +38,7 @@ const AWSEmail = value =>
 const AWSIPAddress = value =>
   handleRequired(value) || isIP.test(value) || "invalid_ip";
 const AWSJSON = value => {
+  if (value === undefined || value === "") return "missing_required";
   try {
     JSON.parse(value);
     return true;
@@ -46,6 +47,7 @@ const AWSJSON = value => {
   }
 };
 const AWSPhone = value => {
+  if (value === undefined || value === "") return "missing_required";
   try {
     const number = parsePhoneNumber(value);
     return number.isValid() || "invalid_phone";

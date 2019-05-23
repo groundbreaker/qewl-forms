@@ -1,6 +1,6 @@
 {
   "name": "@groundbreaker/qewl-forms",
-  "version": "1.9.0",
+  "version": "1.9.1",
   "description": "Form State HOC that generates form state by parsing GraphQL input types.",
   "main": "dist/index.js",
   "files": [
