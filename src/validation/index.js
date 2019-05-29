@@ -90,6 +90,7 @@ const types = {
   AWSUrl,
   Boolean,
   EIN,
+  Float,
   ID,
   Int,
   Routing,
