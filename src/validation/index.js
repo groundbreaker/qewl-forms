@@ -119,18 +119,20 @@ const typeMatcher = ({ apiSchema, field, required = false }) => {
   const match = field.type || field.ofType;
 
   // Custom Validators
+  // Rethink this API.  It shouldn't require editing qewl-forms source.
   switch (field.name) {
     case "taxId": {
       const map = { SSN: "SSN", ITIN: "SSN", EIN: "EIN" };
       return struct.dynamic((value, parent) => {
-        const type = map[parent.taxIdType] || struct("string");
-        return required ? type : Option(type);
+        const matchedType = map[parent.taxIdType];
+        const type = matchedType ? struct(matchedType) : struct("String");
+        return match.kind === "NON_NULL" ? type : Option(type);
       });
     }
     case "accountNumber":
-      return required ? "Account" : Option("Account");
+      return match.kind === "NON_NULL" ? "Account" : Option("Account");
     case "routingNumber":
-      return required ? "Routing" : Option("Routing");
+      return match.kind === "NON_NULL" ? "Routing" : Option("Routing");
     // Intentionally no default, fallthrough to generic validation.
   }
 
