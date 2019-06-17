@@ -1,5 +1,3 @@
-import _ from "underscore";
-
 import { humanTitles } from "../utils/string";
 import { mb } from "../utils/vendor/mb.js";
 
@@ -18,22 +16,23 @@ const scalars = {
 const fieldTypes = ({ apiSchema, inputField, field, required }) => {
   const { enums, inputTypes } = apiSchema;
 
-  const getEnums = _.memoize(() =>
-    _.pluck(
-      mb(["enumValues"])(_.findWhere(enums, { name: field.name })),
-      "name"
-    )
+  const maybeHasEnumValues = mb(["enumValues"])(
+    enums.find(anEnum => anEnum.name === field.name)
   );
 
+  const enumValues = maybeHasEnumValues
+    ? maybeHasEnumValues.map(anEnum => anEnum.name)
+    : [];
+
   const maybeObject = mb(["name"])(
-    _.findWhere(inputTypes, { name: field.name })
+    inputTypes.find(inputType => inputType.name === field.name)
   );
 
   const scalarOptions = {
     ENUM: {
       type: ["string", ...(required ? [] : ["null"])],
-      enum: getEnums(),
-      enumNames: getEnums().map(value => humanTitles(value))
+      enum: enumValues,
+      enumNames: enumValues.map(value => humanTitles(value))
     },
     INPUT_OBJECT:
       maybeObject && processInput({ apiSchema, input: maybeObject }),
@@ -60,7 +59,7 @@ const fieldTypes = ({ apiSchema, inputField, field, required }) => {
 export const processInput = ({ apiSchema, input }) => {
   const { inputTypes } = apiSchema;
   const schema = { properties: {}, required: [], type: "object" };
-  const inputType = _.findWhere(inputTypes, { name: input });
+  const inputType = inputTypes.find(aType => aType.name === input);
 
   inputType.inputFields.map(inputField => {
     let field = mb(["type"])(inputField);
